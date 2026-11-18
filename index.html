@@ -160,6 +160,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 .out-row:first-of-type{padding-top:4px}
 .out-row span{color:var(--on-ink-muted);font-size:15px}
 .out-row b{font:600 22px/1 var(--mono);color:#fff;white-space:nowrap}
+@media(max-width:520px){.out-row b{font-size:18px}.out-row span{font-size:14px}}
 .out-hero{margin-top:22px}
 .out-hero .eyebrow{color:var(--gold)}
 .out-hero .big{font:600 clamp(40px,5.2vw,58px)/1.02 var(--mono);color:var(--gold);margin-top:10px;letter-spacing:-.02em}
@@ -246,6 +247,7 @@ details p{padding:0 0 22px;color:var(--muted);font-size:16.5px;max-width:700px}
 .chip:hover{border-color:var(--water)}
 .chip[aria-pressed="true"]{border-color:var(--water);background:#eaf5ff;box-shadow:inset 0 0 0 1px var(--water)}
 .chip small{display:block;font-weight:500;color:var(--soft);font-size:13px;margin-top:2px}
+.roles .chip{padding:13px 6px;text-align:center}
 .next{width:100%;margin-top:22px;padding:19px}
 .next[disabled]{opacity:.5;cursor:not-allowed}
 .back{background:none;border:0;color:var(--soft);font:600 14px/1 var(--sans);margin-top:14px;cursor:pointer;padding:6px 0}
@@ -547,6 +549,14 @@ footer a{text-decoration:none;color:#fff}
       <form class="q" data-q="4" novalidate>
         <div class="qcount">Last step</div>
         <h3>Where should Michael call?</h3>
+        <div class="field"><label for="f-role">You are the building's</label>
+          <div class="chips roles" role="group" aria-label="Your role" style="margin-top:0;grid-template-columns:repeat(3,1fr)">
+            <button type="button" class="chip" data-role="owner">Owner</button>
+            <button type="button" class="chip" data-role="manager">Manager</button>
+            <button type="button" class="chip" data-role="other">Other</button>
+          </div>
+          <input type="hidden" id="f-role" name="role">
+        </div>
         <div class="field"><label for="f-name">Your name</label><input id="f-name" name="name" autocomplete="name" required></div>
         <div class="field"><label for="f-phone">Phone</label><input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></div>
         <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
@@ -648,9 +658,18 @@ footer a{text-decoration:none;color:#fff}
     if(next&&NEXT_LBL[n]) next.addEventListener("click",function(){if(answers[n])go(n+1)});
     var back=$(".back",q); if(back) back.addEventListener("click",function(){go(n-1)});
   });
+  $$(".roles .chip",form).forEach(function(c){
+    c.setAttribute("aria-pressed","false");
+    c.addEventListener("click",function(){
+      $$(".roles .chip",form).forEach(function(x){x.setAttribute("aria-pressed","false")});
+      c.setAttribute("aria-pressed","true"); $("#f-role").value=c.dataset.role;
+      $(".roles",form).style.outline="";
+    });
+  });
   $('form.q',form).addEventListener("submit",function(e){
     e.preventDefault();
     var f=e.target, ok=true;
+    if(!f.elements.role.value){ok=false;$(".roles",form).style.outline="2px solid #d64040";$(".roles",form).style.outlineOffset="4px";$(".roles .chip",form).focus();}
     ["name","phone","email"].forEach(function(k){var i=f.elements[k];var bad=!i.value.trim()||(k==="email"&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(i.value))||(k==="phone"&&i.value.replace(/\D/g,"").length<10);i.style.borderColor=bad?"#d64040":"";if(bad&&ok){ok=false;i.focus()}});
     if(!ok) return;
     var nm=f.elements.name.value.trim().split(/\s+/)[0];
